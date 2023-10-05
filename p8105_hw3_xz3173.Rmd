@@ -7,6 +7,8 @@ output: github_document
 
 ```{r setup, include=FALSE}
 library(tidyverse)
+library(httr)
+library(jsonlite)
 ```
 
 
@@ -33,11 +35,14 @@ The goal is to do some exploration of this dataset. To that end, write a short d
 
 # Problem 2
 
+```{r}
+data("brfss_smart2010")
+```
+
+
 This problem uses the BRFSS data. DO NOT include this dataset in your local data directory; instead, load the data from the p8105.datasets package.
 
-```{r}
-data("BRFSS")
-```
+
 
 First, do some data cleaning:
 
@@ -55,6 +60,18 @@ Using this dataset, do or answer the following (commenting on the results of eac
 
 # Problem 3
 
+```{r}
+nhanes_covar =
+  read_csv("data/nhanes_covar.csv", skip = 4) |>
+  janitor::clean_names()
+```
+
+
+```{r}
+nhanes_accel =
+  read_csv("data/nhanes_accel.csv") |>
+  janitor::clean_names()
+```
 Accelerometers have become an appealing alternative to self-report techniques for studying physical activity in observational studies and clinical trials, largely because of their relative objectivity. During observation periods, the devices can measure MIMS in a short period; one-minute intervals are common. Because accelerometers can be worn comfortably and unobtrusively, they produce around-the-clock observations.
 
 This problem uses accelerometer data collected on 250 participants in the NHANES study. The participants’ demographic data can be downloaded here, and their accelerometer data can be downloaded here. Variables *MIMS are the MIMS values for each minute of a 24-hour day starting at midnight.
