@@ -7,8 +7,6 @@ output: github_document
 
 ```{r setup, include=FALSE}
 library(tidyverse)
-library(httr)
-library(jsonlite)
 ```
 
 
@@ -22,7 +20,7 @@ data("instacart")
 ```
 
 
-The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illstrative examples of observations. Then, do or answer the following (commenting on the results of each):
+The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illustrative examples of observations. Then, do or answer the following (commenting on the results of each):
 
 * How many aisles are there, and which aisles are the most items ordered from?
 
@@ -36,10 +34,13 @@ The goal is to do some exploration of this dataset. To that end, write a short d
 # Problem 2
 
 ```{r}
-data("brfss_smart2010")
+data("brfss_smart2010") 
 ```
 
-
+```{r}
+brfss_df = brfss_smart2010 |>
+  janitor::clean_names()
+```
 This problem uses the BRFSS data. DO NOT include this dataset in your local data directory; instead, load the data from the p8105.datasets package.
 
 
@@ -62,9 +63,37 @@ Using this dataset, do or answer the following (commenting on the results of eac
 
 ```{r}
 nhanes_covar =
+  # import dataset
   read_csv("data/nhanes_covar.csv", skip = 4) |>
-  janitor::clean_names()
+  
+  # clean names
+  janitor::clean_names() |>
+  
+  # ensure variables are appropriate encoded
+  
+  mutate(
+    sex = 
+      case_match(
+        sex,
+        1 ~ "Male",
+        2 ~ "Female"),
+    
+    education =
+      case_match(
+        education,
+        1 ~ "Less than high school",
+        2 ~ "High school equivalent",
+        3 ~ "More than high school")) |>
+  
+  # exclude participants less than 21 years of age
+  filter(age == "." | age >= 21) 
+  
+  # exclude those with missing demographic data
+
 ```
+
+
+
 
 
 ```{r}
@@ -72,6 +101,7 @@ nhanes_accel =
   read_csv("data/nhanes_accel.csv") |>
   janitor::clean_names()
 ```
+
 Accelerometers have become an appealing alternative to self-report techniques for studying physical activity in observational studies and clinical trials, largely because of their relative objectivity. During observation periods, the devices can measure MIMS in a short period; one-minute intervals are common. Because accelerometers can be worn comfortably and unobtrusively, they produce around-the-clock observations.
 
 This problem uses accelerometer data collected on 250 participants in the NHANES study. The participants’ demographic data can be downloaded here, and their accelerometer data can be downloaded here. Variables *MIMS are the MIMS values for each minute of a 24-hour day starting at midnight.
