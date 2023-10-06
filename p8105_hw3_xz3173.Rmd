@@ -22,9 +22,65 @@ data("instacart")
 
 The goal is to do some exploration of this dataset. To that end, write a short description of the dataset, noting the size and structure of the data, describing some key variables, and giving illustrative examples of observations. Then, do or answer the following (commenting on the results of each):
 
+```{r}
+head(instacart)
+```
+
+
+
 * How many aisles are there, and which aisles are the most items ordered from?
 
+```{r}
+# How many number of aisles are there?
+num_aisles = length(unique(pull(instacart, aisle)))
+num_aisles
+
+# Which aisles are the most items ordered from?
+aisle_orders = instacart |>
+  group_by(aisle) |>
+  summarise(order_count = n()) |>
+  arrange(-order_count)
+
+head(aisle_orders)
+```
+`Fresh vegetables` are the most items ordered from.
+
 * Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
+
+```{r}
+# filtering aisles with more than 10000 items ordered
+filtered_aisles = instacart |>
+  group_by(aisle) |>
+  summarise(order_count = n()) |>
+  filter(order_count > 10000) |>
+  arrange(order_count)
+
+# plotting
+ggplot(filtered_aisles, aes(x = reorder(aisle, order_count), y = order_count)) +
+  geom_bar(stat = "identity") +
+  coord_flip() + # to make it horizontal for better readability
+  labs(title = "Number of Items Ordered in Each Aisle",
+       x = "Aisle",
+       y = "Number of Items Ordered") +
+  theme_minimal()
+```
+
+```{r}
+instacart |>
+  group_by(aisle) |>
+  summarise(order_count = n()) |>
+  filter(order_count > 10000) |>
+  arrange(order_count) |>
+  ggplot(aes(x = reorder(aisle, order_count), y = order_count)) +
+  geom_point() +
+  coord_flip() +
+  labs(title = "Number of Items Ordered in Each Aisle",
+       x = "Aisle",
+       y = "Number of Items Ordered") +
+  theme_minimal()
+```
+
+
 
 * Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
