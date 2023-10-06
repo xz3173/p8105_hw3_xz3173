@@ -43,20 +43,21 @@ aisle_orders = instacart |>
 
 head(aisle_orders)
 ```
+
 `Fresh vegetables` are the most items ordered from.
 
 * Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 
 ```{r}
 # filtering aisles with more than 10000 items ordered
-filtered_aisles = instacart |>
+instacart |>
   group_by(aisle) |>
   summarise(order_count = n()) |>
   filter(order_count > 10000) |>
-  arrange(order_count)
+  arrange(order_count) |>
 
 # plotting
-ggplot(filtered_aisles, aes(x = reorder(aisle, order_count), y = order_count)) +
+  ggplot(aes(x = reorder(aisle, order_count), y = order_count)) +
   geom_bar(stat = "identity") +
   coord_flip() + # to make it horizontal for better readability
   labs(title = "Number of Items Ordered in Each Aisle",
@@ -84,7 +85,49 @@ instacart |>
 
 * Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
+```{r}
+# defining aisles of interest
+aisles_of_interest = c("baking ingredients", "dog food care", "packaged vegetables fruits")
+
+# create the table
+popular_items = instacart |>
+  filter(aisle %in% aisles_of_interest) |>
+  group_by(aisle, product_name) |>
+  summarise(order_count = n()) |>
+  arrange(aisle, desc(order_count)) |>
+  
+  # keep the three most popular items in each of the aisles
+  group_by(aisle) |>
+  filter(min_rank(desc(order_count)) <= 3)
+
+popular_items
+```
+
+
+
 * Make a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week; format this table for human readers (i.e. produce a 2 x 7 table).
+
+
+```{r}
+# filter the data for the two products and calculate the mean order hour
+product_data = instacart |>
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) |>
+  group_by(product_name, order_dow) |>
+  summarise(mean_hour = mean(order_hour_of_day, na.rm = TRUE)) |>
+  mutate(day_name = factor(order_dow,
+                           levels = 0:6,
+                           labels = c("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"))) |>
+  select(-order_dow)
+
+# reshape the data for a 2 by 7 table format
+table_data = product_data |>
+  group_by(product_name) |>
+  pivot_wider(
+    names_from = day_name,
+    values_from = mean_hour)
+
+table_data
+```
 
 
 # Problem 2
