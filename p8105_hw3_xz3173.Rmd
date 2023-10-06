@@ -136,31 +136,72 @@ The `instacart` dataset has `r nrow(instacart)` observations and `r ncol(instaca
 
 # Problem 2
 
+Import data
+
 ```{r}
 data("brfss_smart2010") 
 ```
 
-```{r}
-brfss_df = brfss_smart2010 |>
-  janitor::clean_names()
-```
-This problem uses the BRFSS data. DO NOT include this dataset in your local data directory; instead, load the data from the p8105.datasets package.
-
-
-
 First, do some data cleaning:
 
-* format the data to use appropriate variable names;
-* focus on the “Overall Health” topic
-* include only responses from “Excellent” to “Poor”
-* organize responses as a factor taking levels ordered from “Poor” to “Excellent”
-
-Using this dataset, do or answer the following (commenting on the results of each):
+```{r}
+brfss_smart2010 = brfss_smart2010 |> 
+  
+  # format the data to use appropriate variable names
+  janitor::clean_names() |>
+  
+  # focus on the “Overall Health” topic
+  filter(topic == "Overall Health") |>
+  
+  # include only responses from “Excellent” to “Poor”
+  filter(response %in% c("Excellent", "Poor")) |>
+  
+  # organize responses as a factor taking levels ordered from “Poor” to “Excellent”
+  mutate(response = factor(response, 
+                           levels = c("Poor", "Excellent"),
+                           ordered = TRUE))
+```
 
 * In 2002, which states were observed at 7 or more locations? What about in 2010?
+
+```{r}
+brfss_smart2010 |>
+  group_by(year, locationabbr) |>
+  summarise(n_locations = n_distinct(locationdesc)) |>
+  filter((year == 2002 | year == 2010) & n_locations >= 7)
+```
+
 * Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
+
+```{r}
+excellent_df = brfss_smart2010 |>
+  filter(response == "Excellent") |>
+  group_by(year, locationabbr) |>
+  summarise(average_value = mean(data_value, na.rm = TRUE))
+
+ggplot(excellent_df, aes(x = year, y = average_value, group = locationabbr, color = locationabbr)) +
+  geom_line() +
+  labs(title = "Average Value Over Time for 'Excellent' Response", 
+       x = "Year", 
+       y = "Average Value") +
+  theme_minimal()
+
+```
+
 * Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
 
+```{r}
+ny_df = brfss_smart2010 |>
+  filter(locationabbr == "NY" & (year == 2006 | year == 2010))
+
+ggplot(ny_df, aes(x = response, y = data_value)) +
+  geom_boxplot() +
+  facet_wrap(~year, ncol = 2) +
+  labs(title = "Distribution of Data Value in NY for 2006 and 2010", 
+       x = "Response", 
+       y = "Data Value") +
+  theme_minimal()
+```
 
 # Problem 3
 
