@@ -130,6 +130,10 @@ table_data
 ```
 
 
+The `instacart` dataset has `r nrow(instacart)` observations and `r ncol(instacart)` variables. There are `r num_aisles` aisles are there, and `fresh vegetables` aisles are the most items ordered from. 
+
+
+
 # Problem 2
 
 ```{r}
