@@ -27,7 +27,6 @@ head(instacart)
 ```
 
 
-
 * How many aisles are there, and which aisles are the most items ordered from?
 
 ```{r}
@@ -48,6 +47,8 @@ head(aisle_orders)
 
 * Make a plot that shows the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered. Arrange aisles sensibly, and organize your plot so others can read it.
 
+
+
 ```{r}
 # filtering aisles with more than 10000 items ordered
 instacart |>
@@ -62,7 +63,8 @@ instacart |>
   coord_flip() + # to make it horizontal for better readability
   labs(title = "Number of Items Ordered in Each Aisle",
        x = "Aisle",
-       y = "Number of Items Ordered") +
+       y = "Number of Items Ordered",
+       caption = "Data from the instacart package") +
   theme_minimal()
 ```
 
@@ -77,12 +79,14 @@ instacart |>
   coord_flip() +
   labs(title = "Number of Items Ordered in Each Aisle",
        x = "Aisle",
-       y = "Number of Items Ordered") +
+       y = "Number of Items Ordered",
+       caption = "Data from the instacart package") +
   theme_minimal()
 ```
 
 
 
+  
 * Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
 ```{r}
@@ -183,9 +187,10 @@ ggplot(excellent_df, aes(x = year, y = average_value, group = locationabbr, colo
   geom_line() +
   labs(title = "Average Value Over Time for 'Excellent' Response", 
        x = "Year", 
-       y = "Average Value") +
-  theme_minimal()
-
+       y = "Average Value",
+       caption = "Data from the brfss_smart2010 package") +
+  theme_classic() +
+  theme(legend.position = "bottom")
 ```
 
 * Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
@@ -196,11 +201,15 @@ ny_df = brfss_smart2010 |>
 
 ggplot(ny_df, aes(x = response, y = data_value)) +
   geom_boxplot() +
-  facet_wrap(~year, ncol = 2) +
+  facet_grid(. ~ year) +
   labs(title = "Distribution of Data Value in NY for 2006 and 2010", 
        x = "Response", 
-       y = "Data Value") +
-  theme_minimal()
+       y = "Data Value",
+       caption = "Data from the brfss_smart2010 package") +
+  theme_classic() +
+  theme(legend.position = "bottom")
+
+  
 ```
 
 # Problem 3
@@ -266,11 +275,12 @@ Create a visualization of the age distributions for men and women in each educat
 
 ```{r}
 ggplot(merged_df, aes(x = age, fill = sex)) +
-  geom_histogram(position = "dodge", bins = 30) +
-  facet_wrap(~education) +
+  geom_histogram(position = "dodge", binwidth = 2) +
+  facet_grid(. ~ education) +
   labs(title = "Age distribution by Sex and Education Level",
        x = "Age",
-       y = "Count")
+       y = "Count",
+       caption = "Data from the nhanes_covar and nhanes_accel datasets")
 ```
 
 Comment on these items.
@@ -287,11 +297,12 @@ activity_df = merged_df |>
 
 ggplot(activity_df, aes(x = age, y = total_activity, color = sex)) +
   geom_point() +
-  geom_smooth(method = "lm") +
-  facet_wrap(~education) +
+  geom_smooth(se = FALSE) +
+  facet_wrap(. ~ education) +
   labs(title = "Total Activity vs. Age by Education Level",
        x = "Age",
-       y = "Total Activity")
+       y = "Total Activity",
+       caption = "Data from the nhanes_covar and nhanes_accel datasets") 
 ```
 
 Comment on your plot.
@@ -307,16 +318,19 @@ inspection_activity = merged_df |>
   pivot_longer(
     cols = starts_with("min"),
     names_to = "Minute",
+    names_prefix = "min",
     values_to = "Activity") |>
-  mutate(Minute = as.numeric(str_replace(Minute, "min", "")))
+  mutate(Minute = as.numeric(Minute))
 
 ggplot(inspection_activity, aes(x = Minute, y = Activity, color = sex)) +
   geom_line() +
-  facet_wrap(~education, scales = "free_y") +
+  facet_grid(. ~ education) +
   labs(title = "24-hour Activity Time Course by Education Level",
-       x = "Time of Day (in minutes since midnight",
-       y = "Activity") +
-  theme_minimal()
+       x = "Time of Day",
+       y = "Activity",
+       caption = "Data from the nhanes_covar and nhanes_accel datasets") +
+  theme_classic() +
+  theme(legend.position = "bottom")
 
 ```
 
