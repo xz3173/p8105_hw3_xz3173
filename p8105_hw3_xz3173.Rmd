@@ -65,27 +65,9 @@ instacart |>
        x = "Aisle",
        y = "Number of Items Ordered",
        caption = "Data from the instacart package") +
-  theme_minimal()
+  theme(legend.position = "bottom")
+
 ```
-
-```{r}
-instacart |>
-  group_by(aisle) |>
-  summarise(order_count = n()) |>
-  filter(order_count > 10000) |>
-  arrange(order_count) |>
-  ggplot(aes(x = reorder(aisle, order_count), y = order_count)) +
-  geom_point() +
-  coord_flip() +
-  labs(title = "Number of Items Ordered in Each Aisle",
-       x = "Aisle",
-       y = "Number of Items Ordered",
-       caption = "Data from the instacart package") +
-  theme_minimal()
-```
-
-
-
   
 * Make a table showing the three most popular items in each of the aisles “baking ingredients”, “dog food care”, and “packaged vegetables fruits”. Include the number of times each item is ordered in your table.
 
