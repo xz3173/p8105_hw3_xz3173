@@ -5,10 +5,25 @@ date: "2023-10-05"
 output: github_document
 ---
 
-```{r setup, include=FALSE}
+```{r}
 library(tidyverse)
-```
 
+knitr::opts_chunk$set(
+  fig.width = 6,
+  fig.asp = .6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+```
 
 # Problem 1
 
@@ -64,8 +79,7 @@ instacart |>
   labs(title = "Number of Items Ordered in Each Aisle",
        x = "Aisle",
        y = "Number of Items Ordered",
-       caption = "Data from the instacart package") +
-  theme(legend.position = "bottom")
+       caption = "Data from the instacart package") 
 
 ```
   
@@ -140,11 +154,11 @@ brfss_smart2010 = brfss_smart2010 |>
   filter(topic == "Overall Health") |>
   
   # include only responses from “Excellent” to “Poor”
-  filter(response %in% c("Excellent", "Poor")) |>
+  filter(response %in% c("Excellent", "Very Good", "Good", "Fair", "Poor")) |>
   
   # organize responses as a factor taking levels ordered from “Poor” to “Excellent”
   mutate(response = factor(response, 
-                           levels = c("Poor", "Excellent"),
+                           levels = c("Poor", "Fair", "Good", "Very Good", "Excellent"),
                            ordered = TRUE))
 ```
 
@@ -153,8 +167,17 @@ brfss_smart2010 = brfss_smart2010 |>
 ```{r}
 brfss_smart2010 |>
   group_by(year, locationabbr) |>
-  summarise(n_locations = n_distinct(locationdesc)) |>
-  filter((year == 2002 | year == 2010) & n_locations >= 7)
+  summarize(n_locations = n_distinct(locationdesc)) |>
+  filter(year == 2002,
+         n_locations >= 7)
+```
+
+```{r}
+brfss_smart2010 |>
+  group_by(year, locationabbr) |>
+  summarize(n_locations = n_distinct(locationdesc)) |>
+  filter(year == 2010,
+         n_locations >= 7)
 ```
 
 * Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
@@ -170,16 +193,15 @@ ggplot(excellent_df, aes(x = year, y = average_value, group = locationabbr, colo
   labs(title = "Average Value Over Time for 'Excellent' Response", 
        x = "Year", 
        y = "Average Value",
-       caption = "Data from the brfss_smart2010 package") +
-  theme_classic() +
-  theme(legend.position = "bottom")
+       caption = "Data from the brfss_smart2010 package") 
 ```
 
 * Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
 
 ```{r}
 ny_df = brfss_smart2010 |>
-  filter(locationabbr == "NY" & (year == 2006 | year == 2010))
+  filter(locationabbr == "NY"  & (year == 2006 | year == 2010))
+
 
 ggplot(ny_df, aes(x = response, y = data_value)) +
   geom_boxplot() +
@@ -187,10 +209,7 @@ ggplot(ny_df, aes(x = response, y = data_value)) +
   labs(title = "Distribution of Data Value in NY for 2006 and 2010", 
        x = "Response", 
        y = "Data Value",
-       caption = "Data from the brfss_smart2010 package") +
-  theme_classic() +
-  theme(legend.position = "bottom")
-
+       caption = "Data from the brfss_smart2010 package")
   
 ```
 
@@ -310,10 +329,7 @@ ggplot(inspection_activity, aes(x = Minute, y = Activity, color = sex)) +
   labs(title = "24-hour Activity Time Course by Education Level",
        x = "Time of Day",
        y = "Activity",
-       caption = "Data from the nhanes_covar and nhanes_accel datasets") +
-  theme_classic() +
-  theme(legend.position = "bottom")
-
+       caption = "Data from the nhanes_covar and nhanes_accel datasets") 
 ```
 
 Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences.
