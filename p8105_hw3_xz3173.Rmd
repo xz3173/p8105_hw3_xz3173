@@ -165,19 +165,23 @@ brfss_smart2010 = brfss_smart2010 |>
 * In 2002, which states were observed at 7 or more locations? What about in 2010?
 
 ```{r}
-brfss_smart2010 |>
-  group_by(year, locationabbr) |>
+states_with_7_or_more_locations_in_2002 = brfss_smart2010 |>
+  filter(year == 2002) |>
+  group_by(locationabbr) |>
   summarize(n_locations = n_distinct(locationdesc)) |>
-  filter(year == 2002,
-         n_locations >= 7)
+  filter(n_locations >= 7)
+
+print(states_with_7_or_more_locations_in_2002)
 ```
 
 ```{r}
-brfss_smart2010 |>
-  group_by(year, locationabbr) |>
+states_with_7_or_more_locations_in_2010 = brfss_smart2010 |>
+  filter(year == 2010) |>
+  group_by(locationabbr) |>
   summarize(n_locations = n_distinct(locationdesc)) |>
-  filter(year == 2010,
-         n_locations >= 7)
+  filter(n_locations >= 7)
+
+print(states_with_7_or_more_locations_in_2010)
 ```
 
 * Construct a dataset that is limited to Excellent responses, and contains, year, state, and a variable that averages the data_value across locations within a state. Make a “spaghetti” plot of this average value over time within a state (that is, make a plot showing a line for each state across years – the geom_line geometry and group aesthetic will help).
@@ -186,14 +190,19 @@ brfss_smart2010 |>
 excellent_df = brfss_smart2010 |>
   filter(response == "Excellent") |>
   group_by(year, locationabbr) |>
-  summarise(average_value = mean(data_value, na.rm = TRUE))
+  summarize(average_value = mean(data_value, na.rm = TRUE))
 
+print(excellent_df)
+```
+
+```{r}
 ggplot(excellent_df, aes(x = year, y = average_value, group = locationabbr, color = locationabbr)) +
-  geom_line() +
+  geom_line(alpha = 0.8) +
   labs(title = "Average Value Over Time for 'Excellent' Response", 
        x = "Year", 
        y = "Average Value",
-       caption = "Data from the brfss_smart2010 package") 
+       caption = "Data from the brfss_smart2010 package") +
+  theme(legend.position = "none") # to hide the legend since there will be many states
 ```
 
 * Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
@@ -267,7 +276,7 @@ Produce a reader-friendly table for the number of men and women in each educatio
 ```{r}
 education_table = merged_df |>
   group_by(sex, education) |>
-  summarise(count = n())
+  summarize(count = n())
 
 print(education_table)
 ```
@@ -294,7 +303,7 @@ Using your tidied dataset, aggregate across minutes to create a total activity v
 ```{r}
 activity_df = merged_df |>
   group_by(seqn, sex, age, education) |>
-  summarise(total_activity = sum(min1:min1440, na.rm = TRUE))
+  summarize(total_activity = sum(min1:min1440, na.rm = TRUE))
 
 ggplot(activity_df, aes(x = age, y = total_activity, color = sex)) +
   geom_point() +
