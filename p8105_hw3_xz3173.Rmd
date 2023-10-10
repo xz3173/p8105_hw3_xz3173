@@ -154,11 +154,11 @@ brfss_smart2010 = brfss_smart2010 |>
   filter(topic == "Overall Health") |>
   
   # include only responses from “Excellent” to “Poor”
-  filter(response %in% c("Excellent", "Very Good", "Good", "Fair", "Poor")) |>
+  filter(response %in% c("Excellent", "Very good", "Good", "Fair", "Poor")) |>
   
   # organize responses as a factor taking levels ordered from “Poor” to “Excellent”
   mutate(response = factor(response, 
-                           levels = c("Poor", "Fair", "Good", "Very Good", "Excellent"),
+                           levels = c("Poor", "Fair", "Good", "Very good", "Excellent"),
                            ordered = TRUE))
 ```
 
@@ -167,7 +167,7 @@ brfss_smart2010 = brfss_smart2010 |>
 ```{r}
 states_with_7_or_more_locations_in_2002 = brfss_smart2010 |>
   filter(year == 2002) |>
-  group_by(locationabbr) |>
+  group_by(year, locationabbr) |>
   summarize(n_locations = n_distinct(locationdesc)) |>
   filter(n_locations >= 7)
 
@@ -177,7 +177,7 @@ print(states_with_7_or_more_locations_in_2002)
 ```{r}
 states_with_7_or_more_locations_in_2010 = brfss_smart2010 |>
   filter(year == 2010) |>
-  group_by(locationabbr) |>
+  group_by(year, locationabbr) |>
   summarize(n_locations = n_distinct(locationdesc)) |>
   filter(n_locations >= 7)
 
@@ -207,12 +207,13 @@ ggplot(excellent_df, aes(x = year, y = average_value, group = locationabbr, colo
 
 * Make a two-panel plot showing, for the years 2006, and 2010, distribution of data_value for responses (“Poor” to “Excellent”) among locations in NY State.
 
+
+
 ```{r}
 ny_df = brfss_smart2010 |>
-  filter(locationabbr == "NY"  & (year == 2006 | year == 2010))
+  filter(locationabbr == "NY"  & (year == 2006 | year == 2010)) 
 
-
-ggplot(ny_df, aes(x = response, y = data_value)) +
+ggplot(ny_df, aes(x = response, y = data_value, color = locationdesc)) +
   geom_boxplot() +
   facet_grid(. ~ year) +
   labs(title = "Distribution of Data Value in NY for 2006 and 2010", 
@@ -276,7 +277,8 @@ Produce a reader-friendly table for the number of men and women in each educatio
 ```{r}
 education_table = merged_df |>
   group_by(sex, education) |>
-  summarize(count = n())
+  summarize(count = n()) |>
+  knitr::kable(digits = 1)
 
 print(education_table)
 ```
@@ -306,9 +308,9 @@ activity_df = merged_df |>
   summarize(total_activity = sum(min1:min1440, na.rm = TRUE))
 
 ggplot(activity_df, aes(x = age, y = total_activity, color = sex)) +
-  geom_point() +
-  geom_smooth(se = FALSE) +
-  facet_wrap(. ~ education) +
+  geom_point(alpha = 0.8) +
+  geom_smooth(method = "lm", se = FALSE) +
+  facet_grid(. ~ education) +
   labs(title = "Total Activity vs. Age by Education Level",
        x = "Age",
        y = "Total Activity",
