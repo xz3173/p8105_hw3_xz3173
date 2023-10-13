@@ -7,6 +7,8 @@ output: github_document
 
 ```{r}
 library(tidyverse)
+library(ggridges)
+library(patchwork)
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -124,7 +126,7 @@ table_data = product_data |>
   group_by(product_name) |>
   pivot_wider(
     names_from = day_name,
-    values_from = mean_hour)
+    values_from = mean_hour) 
 
 table_data
 ```
@@ -169,17 +171,19 @@ states_with_7_or_more_locations_in_2002 = brfss_smart2010 |>
   filter(year == 2002) |>
   group_by(year, locationabbr) |>
   summarize(n_locations = n_distinct(locationdesc)) |>
-  filter(n_locations >= 7)
+  filter(n_locations >= 7) 
 
 print(states_with_7_or_more_locations_in_2002)
 ```
+
+
 
 ```{r}
 states_with_7_or_more_locations_in_2010 = brfss_smart2010 |>
   filter(year == 2010) |>
   group_by(year, locationabbr) |>
   summarize(n_locations = n_distinct(locationdesc)) |>
-  filter(n_locations >= 7)
+  filter(n_locations >= 7) 
 
 print(states_with_7_or_more_locations_in_2010)
 ```
@@ -190,7 +194,7 @@ print(states_with_7_or_more_locations_in_2010)
 excellent_df = brfss_smart2010 |>
   filter(response == "Excellent") |>
   group_by(year, locationabbr) |>
-  summarize(average_value = mean(data_value, na.rm = TRUE))
+  summarize(average_value = mean(data_value, na.rm = TRUE)) 
 
 print(excellent_df)
 ```
@@ -213,7 +217,7 @@ ggplot(excellent_df, aes(x = year, y = average_value, group = locationabbr, colo
 ny_df = brfss_smart2010 |>
   filter(locationabbr == "NY"  & (year == 2006 | year == 2010)) 
 
-ggplot(ny_df, aes(x = response, y = data_value, color = locationdesc)) +
+ggplot(ny_df, aes(x = response, y = data_value)) +
   geom_boxplot() +
   facet_grid(. ~ year) +
   labs(title = "Distribution of Data Value in NY for 2006 and 2010", 
@@ -252,8 +256,8 @@ nhanes_covar =
         3 ~ "More than high school")) |>
   
   # exclude participants less than 21 years of age, and those with missing demographic data; 
-  filter(age >= 21, 
-         !is.na(bmi))
+  filter(age >= 21) |>
+  drop_na()
 ```
 
  
@@ -261,7 +265,13 @@ nhanes_covar =
 ```{r}
 nhanes_accel =
   read_csv("data/nhanes_accel.csv") |>
-  janitor::clean_names()
+  janitor::clean_names() |>
+  pivot_longer(
+    cols = starts_with("min"),
+    names_to = "minute",
+    names_prefix = "min",
+    values_to = "activity") |>
+  mutate(minute = as.numeric(minute))
 ```
 
 
@@ -295,8 +305,7 @@ ggplot(merged_df, aes(x = age, fill = sex)) +
        caption = "Data from the nhanes_covar and nhanes_accel datasets")
 ```
 
-Comments:
-There are more males than females have education of level of high school equivalent. Both males and females have more people with education level of more than high school. The age distribution among high school equivalent and less than high school is approximately same. The age distribution for more than high school is tends to lean on lower ages.
+**Comments: There are more males than females have education of level of high school equivalent. Both males and females have more people with education level of more than high school. The age distribution among high school equivalent and less than high school is approximately same. The age distribution for more than high school is tends to lean on lower ages.**
 
 
 
@@ -306,7 +315,7 @@ Using your tidied dataset, aggregate across minutes to create a total activity v
 ```{r}
 activity_df = merged_df |>
   group_by(seqn, sex, age, education) |>
-  summarize(total_activity = sum(min1:min1440, na.rm = TRUE))
+  summarize(total_activity = sum(activity))
 
 ggplot(activity_df, aes(x = age, y = total_activity, color = sex)) +
   geom_point(alpha = 0.8) +
@@ -318,25 +327,18 @@ ggplot(activity_df, aes(x = age, y = total_activity, color = sex)) +
        caption = "Data from the nhanes_covar and nhanes_accel datasets") 
 ```
 
-Comments:
-From the plot, we can see the spread of the points mostly stay in the bottom of the plot, which means most of people have lower activity. From the slopes of the trend lines, we could see the negative slopes, which indicates the negative relationship between the two variables of age and total activities, when the age goes up, the total activities goes down, and vice versa. From the plot of high school equivalent and less than high school, we can see males tend to have higher activity. For the more than high school plot, female has a slightly higher trend line than male, which indicates female has a little higher total activity than male. There are also some anomalies points in the plots, which means there are a few people don't follow the trend line and have higher activity.
+**Comments: From the plot, we can see the spread of the points mostly stay in the bottom of the plot, which means most of people have lower activity. From the slopes of the trend lines, we could see the negative slopes, which indicates the negative relationship between the two variables of age and total activities, when the age goes up, the total activities goes down, and vice versa. From the plot of high school equivalent and less than high school, we can see males tend to have higher activity. For the more than high school plot, female has a slightly higher trend line than male, which indicates female has a little higher total activity than male. There are also some anomalies points in the plots, which means there are a few people don't follow the trend line and have higher activity.**
 
 
 
 Make a three-panel plot that shows the 24-hour activity time courses for each education level and use color to indicate sex. 
 
 ```{r}
-inspection_activity = merged_df |>
-  pivot_longer(
-    cols = starts_with("min"),
-    names_to = "Minute",
-    names_prefix = "min",
-    values_to = "Activity") |>
-  mutate(Minute = as.numeric(Minute))
+inspection_activity = merged_df 
 
-ggplot(inspection_activity, aes(x = Minute, y = Activity, color = sex)) +
+ggplot(inspection_activity, aes(x = minute, y = activity, color = sex)) +
   geom_line(aes(group = seqn), alpha = 0.2) +
-  geom_smooth(method = "gam", formula = y ~ s(x, bs = "cs"), se = FALSE) +
+  geom_smooth(se = FALSE) +
   facet_grid(. ~ education) +
   labs(title = "24-hour Activity Time Course by Education Level",
        x = "Time of Day",
@@ -347,4 +349,4 @@ ggplot(inspection_activity, aes(x = Minute, y = Activity, color = sex)) +
 
 Describe in words any patterns or conclusions you can make based on this graph; including smooth trends may help identify differences.
 
-The faint lines are closely clustered, which indicates that many people have similar activity patterns. Except for the plot of more than high school, there are some lines are scattered, which indicates that some people have different activity patterns. The color represent sex, which indicates males and females mostly have similar trends of activity around the day. Except for more than high school, females tend to might be more active during the middle of the day. The smoothed line gives an average trend across everyone. The peaks in those trend suggest that most people have active times during 500 min to 1000 min in the 24-hour, while troughs suggest more sedentary periods. Since the x-axis represents time, activity during late night hours (time0-time250) are likely due to sleeping, peak could be associated with typical working hours, meal times, or exercise periods (time500-time1000+).
+**The faint lines are closely clustered, which indicates that many people have similar activity patterns. Except for the plot of more than high school, there are some lines are scattered, which indicates that some people have different activity patterns. The color represent sex, which indicates males and females mostly have similar trends of activity around the day. Except for more than high school, females tend to might be more active during the middle of the day. The smoothed line gives an average trend across everyone. The peaks in those trend suggest that most people have active times during 500 min to 1000 min in the 24-hour, while troughs suggest more sedentary periods. Since the x-axis represents time, activity during late night hours (time0-time250) are likely due to sleeping, peak could be associated with typical working hours, meal times, or exercise periods (time500-time1000+).**
