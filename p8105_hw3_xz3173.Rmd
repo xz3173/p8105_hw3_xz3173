@@ -293,7 +293,7 @@ merged_df = nhanes_covar |>
 Produce a reader-friendly table for the number of men and women in each education category, 
 
 ```{r}
-education_table = merged_df |>
+education_table = nhanes_covar |>
   group_by(sex, education) |>
   summarize(count = n()) |>
   knitr::kable(digits = 1)
